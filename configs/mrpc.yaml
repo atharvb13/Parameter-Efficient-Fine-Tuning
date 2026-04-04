@@ -1,0 +1,24 @@
+task: mrpc
+model_name: distilbert-base-uncased
+output_dir: outputs/mrpc_adamw
+
+seed: 42
+max_length: 128
+batch_size: 16
+epochs: 5
+
+optimizer: adamw
+lr: 2.0e-4
+weight_decay: 0.01
+momentum: 0.9
+beta2: 0.999
+eps: 1.0e-8
+warmup_ratio: 0.1
+grad_clip: 1.0
+
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.1
+lora_targets: ["q_lin", "v_lin"]
+
+device: auto
