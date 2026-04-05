@@ -1,20 +1,21 @@
 task: mrpc
 model_name: distilbert-base-uncased
-output_dir: outputs/mrpc_adamw
+output_dir: outputs/mrpc_adapter_diag
 
 seed: 42
 max_length: 128
 batch_size: 16
 epochs: 5
 
-optimizer: adamw
+optimizer: adapter_diag
 lr: 2.0e-4
-weight_decay: 0.01
-momentum: 0.9
+head_lr: 2.0e-4
+weight_decay: 0.0
+head_weight_decay: 0.01
 beta2: 0.999
-eps: 1.0e-8
+eps: 1.0e-6
 warmup_ratio: 0.1
-grad_clip: 1.0
+grad_clip: 0.5
 
 lora_r: 8
 lora_alpha: 16
