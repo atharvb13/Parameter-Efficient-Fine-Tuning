@@ -11,8 +11,7 @@ from transformers import get_linear_schedule_with_warmup
 from src.data import build_dataloaders
 from src.metrics import compute_metrics, selection_metric
 from src.model import build_model
-from src.optimizers import get_optimizer
-
+from src.optimizers import get_optimizers
 
 def set_seed(seed):
     random.seed(seed)
@@ -78,16 +77,18 @@ def train(cfg):
 
     train_loader, val_loader, tokenizer = build_dataloaders(cfg)
     model = build_model(cfg).to(device)
-    optimizer = get_optimizer(model, cfg)
+    optimizers = get_optimizers(model, cfg)
 
     total_steps = len(train_loader) * cfg["epochs"]
     warmup_steps = int(cfg["warmup_ratio"] * total_steps)
 
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer,
-        num_warmup_steps=warmup_steps,
-        num_training_steps=total_steps,
-    )
+    schedulers = {}
+    for key, opt in optimizers.items():
+        schedulers[key] = get_linear_schedule_with_warmup(
+            opt,
+            num_warmup_steps=warmup_steps,
+            num_training_steps=total_steps,
+        )
 
     history = []
     best_score = -1.0
@@ -107,6 +108,10 @@ def train(cfg):
 
             outputs = model(**batch)
             loss = outputs.loss
+            if not torch.isfinite(loss):
+                print("Non-finite loss detected, stopping this run.")
+                break
+
             loss.backward()
 
             torch.nn.utils.clip_grad_norm_(
@@ -114,9 +119,14 @@ def train(cfg):
                 cfg["grad_clip"],
             )
 
-            optimizer.step()
-            scheduler.step()
-            optimizer.zero_grad()
+            for opt in optimizers.values():
+                opt.step()
+
+            for sch in schedulers.values():
+                sch.step()
+
+            for opt in optimizers.values():
+                opt.zero_grad()
 
             running_loss += loss.item()
             pbar.set_postfix(train_loss=f"{running_loss / step:.4f}")

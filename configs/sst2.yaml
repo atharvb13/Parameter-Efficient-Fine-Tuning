@@ -1,20 +1,22 @@
 task: sst2
 model_name: distilbert-base-uncased
-output_dir: outputs/sst2_adamw
+output_dir: outputs/sst2_adapter_diag
 
 seed: 42
 max_length: 128
 batch_size: 16
 epochs: 4
 
-optimizer: adamw      # adamw | sgdm | adapter_diag
-lr: 2.0e-4
-weight_decay: 0.01
+optimizer: adapter_diag
+lr: 1.0e-4
+head_lr: 2.0e-4
+weight_decay: 0.0
+head_weight_decay: 0.01
 momentum: 0.9
 beta2: 0.999
-eps: 1.0e-8
+eps: 1.0e-6
 warmup_ratio: 0.1
-grad_clip: 1.0
+grad_clip: 0.5
 
 lora_r: 8
 lora_alpha: 16
