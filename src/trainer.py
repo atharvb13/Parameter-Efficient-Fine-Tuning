@@ -11,7 +11,12 @@ from transformers import get_linear_schedule_with_warmup
 from src.data import build_dataloaders
 from src.metrics import compute_metrics, selection_metric
 from src.model import build_model
+from src.kfac import build_kfac_gradient_maker, kfac_forward_backward
 from src.optimizers import get_optimizers
+
+
+def uses_asdl_kfac(cfg):
+    return cfg["optimizer"].lower() == "adapter_kfac"
 
 def set_seed(seed):
     random.seed(seed)
@@ -80,6 +85,10 @@ def train(cfg):
     optimizers = get_optimizers(model, cfg)
 
     total_steps = len(train_loader) * cfg["epochs"]
+    grad_maker = None
+    if uses_asdl_kfac(cfg):
+        grad_maker = build_kfac_gradient_maker(model, cfg, total_steps)
+
     warmup_steps = int(cfg["warmup_ratio"] * total_steps)
 
     schedulers = {}
@@ -106,13 +115,18 @@ def train(cfg):
         for step, batch in enumerate(pbar, start=1):
             batch = move_batch_to_device(batch, device)
 
-            outputs = model(**batch)
-            loss = outputs.loss
+            if grad_maker is not None:
+                _, loss = kfac_forward_backward(grad_maker, model, batch)
+            else:
+                outputs = model(**batch)
+                loss = outputs.loss
+
             if not torch.isfinite(loss):
                 print("Non-finite loss detected, stopping this run.")
                 break
 
-            loss.backward()
+            if grad_maker is None:
+                loss.backward()
 
             torch.nn.utils.clip_grad_norm_(
                 [p for p in model.parameters() if p.requires_grad],

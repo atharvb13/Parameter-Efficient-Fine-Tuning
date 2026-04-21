@@ -1,0 +1,9 @@
+# Use on Google Colab to keep the preinstalled CUDA build of PyTorch.
+# Install: pip install -r requirements-colab.txt
+transformers
+datasets
+peft
+pyyaml
+scikit-learn
+tqdm
+asdfghjkl

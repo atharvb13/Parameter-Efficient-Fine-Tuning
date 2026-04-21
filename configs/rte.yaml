@@ -3,13 +3,13 @@ model_name: distilbert-base-uncased
 
 seed: 42
 max_length: 128
-batch_size: 16
+batch_size: 32
 epochs: 6
 
 output_dir: outputs/rte_adapter_diag
 optimizer: adapter_diag
-lr: 2.0e-4
-head_lr: 2.0e-4
+lr: 7.0e-4
+head_lr: 7.0e-4
 weight_decay: 0.0
 head_weight_decay: 0.01
 beta2: 0.999
