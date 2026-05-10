@@ -50,6 +50,7 @@ def build_kfac_gradient_maker(model, cfg, total_steps: int):
 
 
 def kfac_forward_backward(grad_maker, model, batch):
+    grad_maker.config.data_size = batch["labels"].size(0)
     dummy = grad_maker.setup_model_call(model, **batch)
     grad_maker.setup_logits_repr(dummy.logits)
     grad_maker.setup_loss_repr(dummy.loss)
@@ -57,9 +58,10 @@ def kfac_forward_backward(grad_maker, model, batch):
 
 
 def make_adapter_sgd_optimizer(lora_params, cfg):
+    momentum = float(cfg.get("adapter_momentum", cfg.get("momentum", 0.0)))
     return torch.optim.SGD(
         lora_params,
         lr=cfg["lr"],
-        momentum=float(cfg.get("adapter_momentum", 0.0)),
+        momentum=momentum,
         weight_decay=cfg["weight_decay"],
     )
