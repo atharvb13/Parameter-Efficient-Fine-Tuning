@@ -1,5 +1,7 @@
 import torch
 
+from src.kfac import make_adapter_sgd_optimizer
+
 
 class AdapterDiagOptimizer(torch.optim.Optimizer):
     """
@@ -99,6 +101,26 @@ def get_optimizers(model, cfg):
                 eps=cfg["eps"],
                 weight_decay=cfg["weight_decay"],
             ),
+            "head": torch.optim.AdamW(
+                head_params,
+                lr=cfg.get("head_lr", 2e-4),
+                weight_decay=cfg.get("head_weight_decay", 0.01),
+                eps=cfg["eps"],
+            ),
+        }
+
+    if name == "adapter_kfac":
+        lora_params = []
+        head_params = []
+
+        for n, p in trainable:
+            if "lora_" in n:
+                lora_params.append(p)
+            else:
+                head_params.append(p)
+
+        return {
+            "adapter": make_adapter_sgd_optimizer(lora_params, cfg),
             "head": torch.optim.AdamW(
                 head_params,
                 lr=cfg.get("head_lr", 2e-4),

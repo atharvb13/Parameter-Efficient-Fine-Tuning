@@ -1,22 +1,29 @@
 task: sst2
 model_name: distilbert-base-uncased
-output_dir: outputs/sst2_adapter_diag
+output_dir: outputs/sst2_adapter_kfac_exact_d3e3_lr5e4
 
 seed: 42
 max_length: 128
-batch_size: 16
+batch_size: 32
 epochs: 4
 
-optimizer: adapter_diag
-lr: 1.0e-4
-head_lr: 2.0e-4
+optimizer: adapter_kfac
+lr: 5.0e-4
+head_lr: 5.0e-4
 weight_decay: 0.0
 head_weight_decay: 0.01
 momentum: 0.9
 beta2: 0.999
 eps: 1.0e-6
 warmup_ratio: 0.1
-grad_clip: 0.5
+grad_clip: 1.0
+
+kfac_damping: 3.0e-3
+kfac_ema_decay: 0.95
+kfac_fisher_type: fisher_exact
+kfac_n_mc_samples: 1
+kfac_preconditioner_upd_ratio: 1.0
+kfac_curvature_upd_ratio: 1.0
 
 lora_r: 8
 lora_alpha: 16
